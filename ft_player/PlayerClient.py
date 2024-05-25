@@ -57,7 +57,7 @@ class PlayerClient:
             self.blocks.remove(block_type)
             hx = f'{x+1:X}'
             hy = f'{y+1:X}'
-            # print(f'{block_type}{action}{hx}{hy}')
+            print(f'{block_type}{action}{hx}{hy}')
             return f'{block_type}{action}{hx}{hy}'
 
         # print('X000')
@@ -166,39 +166,40 @@ class PlayerClient:
     
     def find_placeable_position(self):
         best_score = float('inf')
-        best_position = (None, None, None, None, None)
+        best_position = (None, None, None, None)
         for block_type in self.blocks:
             block = bt[block_type].block_map
             # ブロックのすべての回転と反転を試す
-            for rotation in range(4):
-                for flip in [True, False]:
-                    if flip:
-                        block = np.flip(block, axis=1)
-                    block = np.rot90(block, rotation)
-                    h, w = block.shape
-                    # ブロック内の各1の位置を取得
-                    ones_y, ones_x = np.where(block == 1)
-                    for y in range(BOARD_HEIGHT):
-                        for x in range(BOARD_WIDTH):
-                            # self.starting_pointsで1のポジションを走査する
-                            if self.starting_points[y, x] == 1:
-                                # ブロック内の各1の位置を起点として試す
-                                for oy, ox in zip(ones_y, ones_x):
-                                    ny, nx = y - oy, x - ox
-                                    # ny, nxがボード内に収まっていることを確認
-                                    if ny < 0 or ny >= BOARD_HEIGHT or nx < 0 or nx >= BOARD_WIDTH:
-                                        continue
-                                    if self.is_out_board(block, nx, ny, w, h):
-                                        continue
-                                    if self.is_overlap(block, nx, ny, w, h):
-                                        continue
-                                    if self.is_adjacent(block, nx, ny, w, h):
-                                        continue
-                                    # 評価関数を用いてスコアを計算
-                                    score = self.evaluate_position(block, nx, ny)
-                                    # 最良のスコアよりも良い場合は更新
-                                    if score < best_score:
-                                        best_score = score
-                                        best_position = (block_type, nx, ny, rotation, flip)
+            # for rotation in range(4):
+            #     for flip in [True, False]:
+            #         if flip:
+            #             block = np.flip(block, axis=1)
+            #         block = np.rot90(block, rotation)
+            h, w = block.shape
+            # ブロック内の各1の位置を取得
+            ones_y, ones_x = np.where(block == 1)
+            for y in range(BOARD_HEIGHT):
+                for x in range(BOARD_WIDTH):
+                    # self.starting_pointsで1のポジションを走査する
+                    if self.starting_points[y, x] == 1:
+                        # ブロック内の各1の位置を起点として試す
+                        for oy, ox in zip(ones_y, ones_x):
+                            ny, nx = y - oy, x - ox
+                            # ny, nxがボード内に収まっていることを確認
+                            if ny < 0 or ny >= BOARD_HEIGHT or nx < 0 or nx >= BOARD_WIDTH:
+                                continue
+                            if self.is_out_board(block, nx, ny, w, h):
+                                continue
+                            if self.is_overlap(block, nx, ny, w, h):
+                                continue
+                            if self.is_adjacent(block, nx, ny, w, h):
+                                continue
+                            # 評価関数を用いてスコアを計算
+                            score = self.evaluate_position(block, nx, ny)
+                            # 最良のスコアよりも良い場合は更新
+                            if score < best_score:
+                                best_score = score
+                                best_position = (block_type, nx, ny, 0)
+                                # best_position = (block_type, nx, ny, self.gen_action(rotation, flip))
         return best_position
 
